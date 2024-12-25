@@ -115,6 +115,89 @@ export const getAllProducts = asyncHandler(async (req, res) => {
   res.status(200).json(productsWithDetails);
 });
 
+// get all products with pagination
+// export const getAllProducts = asyncHandler(async (req, res) => {
+//   const { page = 1, limit = 8 } = req.query; 
+
+//   const skip = (page - 1) * limit;
+//   const totalProducts = await Product.countDocuments();
+
+//   const products = await Product.find({})
+//     .sort("-createdAt")
+//     .populate("user")
+//     .skip(skip)
+//     .limit(Number(limit));
+
+//   const productsWithDetails = await Promise.all(
+//     products.map(async (product) => {
+//       const latestBid = await BiddingProduct.findOne({
+//         product: product._id,
+//       }).sort("-createdAt");
+//       const biddingPrice = latestBid ? latestBid.price : product.price;
+
+//       const totalBids = await BiddingProduct.countDocuments({
+//         product: product._id,
+//       });
+
+//       return {
+//         ...product._doc,
+//         biddingPrice,
+//         totalBids,
+//       };
+//     })
+//   );
+
+//   res.status(200).json({
+//     products: productsWithDetails,
+//     totalProducts,
+//     currentPage: Number(page),
+//     totalPages: Math.ceil(totalProducts / limit),
+//   });
+// });
+
+// export const getAllProducts = asyncHandler(async (req, res) => {
+//   const { page, limit } = req.query; // Get pagination parameters from query
+//   let productsQuery = Product.find({}).sort("-createdAt").populate("user");
+
+//   // Apply pagination only if page and limit are provided
+//   if (page && limit) {
+//     const skip = (page - 1) * limit;
+//     productsQuery = productsQuery.skip(skip).limit(Number(limit));
+//   }
+
+//   const products = await productsQuery; // Execute the query
+
+//   // Prepare product details with bidding information
+//   const productsWithDetails = await Promise.all(
+//     products.map(async (product) => {
+//       const latestBid = await BiddingProduct.findOne({
+//         product: product._id,
+//       }).sort("-createdAt");
+//       const biddingPrice = latestBid ? latestBid.price : product.price;
+
+//       const totalBids = await BiddingProduct.countDocuments({
+//         product: product._id,
+//       });
+
+//       return {
+//         ...product._doc,
+//         biddingPrice,
+//         totalBids,
+//       };
+//     })
+//   );
+
+//   // Count total products only when pagination is applied
+//   const totalProducts = page && limit ? await Product.countDocuments() : undefined;
+
+//   res.status(200).json({
+//     products: productsWithDetails,
+//     totalProducts: totalProducts, // Include only when pagination is applied
+//     totalPages: totalProducts ? Math.ceil(totalProducts / limit) : undefined, // Calculate pages if applicable
+//   });
+// });
+
+
 // delete product
 export const deleteProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -321,35 +404,17 @@ export const getAllProductsByAmdin = asyncHandler(async (req, res) => {
   res.status(200).json(products);
 });
 
-// TODO: delete products
-// export const deleteProductsByAmdin = asyncHandler(async (req, res) => {
-//   try {
-//     const { productIds } = req.body;
-
-//     const result = await Product.findOneAndDelete({ _id: productIds });
-
-//     res.status(200).json({ message: `${result.deletedCount} products deleted successfully` });
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// });
+// delete products by admin
 export const deleteProductsByAmdin = asyncHandler(async (req, res) => {
-  const { productIds } = req.body;
-  const product = await Product.findById(id);
+  try {
+    const productId  = req?.params?.id;
 
-  if (!product) {
-    res.status(404);
-    throw new Error("Product not found");
+    await Product.findOneAndDelete({ _id: productId });
+
+    res.status(200).json({ message: 'deleted successfully' });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-
-  if (product.image && product.image.public_id) {
-    try {
-      await cloudinary.uploader.destroy(product.image.public_id);
-    } catch (error) {
-      console.error("Error deleting image from Cloudinary:", error);
-    }
-  }
-
-  await Product.findByIdAndDelete(productIds);
-  res.status(200).json({ message: "Product deleted successfully." });
 });
+

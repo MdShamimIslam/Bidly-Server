@@ -25,10 +25,9 @@ router.get("/user", protect, getAllProductsofUser);
 router.get("/:id", getProduct);
 router.delete("/:id", protect, deleteProduct);
 router.put("/:id", protect, isSeller, upload.single("image"), updateProduct);
-
 // Only access for admin users
 router.patch("/admin/product-verified/:id", protect, isAdmin, verifyAndAddCommissionProductByAmdin);
 router.get("/admin/products", protect, isAdmin, getAllProductsByAmdin);
-router.delete("/admin/products", protect, isAdmin, deleteProductsByAmdin);
+router.delete("/admin/products/:id", protect, isAdmin, deleteProductsByAmdin);
 
 export default router;

@@ -5,6 +5,7 @@ import User from "../models/userModel.js";
 export const protect = asyncHandler(async (req, res, next) => {
   try {
     const token = req.cookies.token;
+
     if (!token) {
       console.log("Token not found in cookies");
       res.status(401);

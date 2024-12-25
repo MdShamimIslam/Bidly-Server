@@ -2,6 +2,15 @@ import asyncHandler from "express-async-handler";
 import User from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import cloudinary from "cloudinary";
+import dotenv from "dotenv";
+dotenv.config();
+
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // generate token
 const generateToken = (id) => {
@@ -148,7 +157,62 @@ export const loginAsSeller = asyncHandler(async (req, res) => {
 export const getUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id).select("-password");
   res.status(200).json(user);
-  
+});
+
+// update user
+export const updateUser = asyncHandler(async (req, res) => {
+  const updateName  = req.body.name;
+  const userId = req.user.id;
+
+  if (!updateName) {
+    res.status(400);
+    throw new Error("Name is required");
+  }
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  let fileData = user?.photo || {};
+  if (req.file) {
+    try {
+      if (fileData.public_id) {
+        await cloudinary.v2.uploader.destroy(fileData.public_id);
+      }
+
+      const uploadedFile = await cloudinary.v2.uploader.upload(req.file.path, {
+        folder: "Bidding/Profile",
+        resource_type: "image",
+      });
+
+      fileData = {
+        fileName: req.file.originalname,
+        filePath: uploadedFile.secure_url,
+        fileType: req.file.mimetype,
+        public_id: uploadedFile.public_id,
+      };
+    } catch (error) {
+      res.status(500);
+      throw new Error("Photo upload failed");
+    }
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(
+    { _id: userId },
+    {
+      name:updateName,
+      photo: fileData?.filePath,
+    },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  res.status(200).json(updatedUser);
 });
 
 // get user balance
@@ -189,5 +253,18 @@ export const estimateIncome = asyncHandler(async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// delete user by admin
+export const deleteUserByAdmin = asyncHandler(async (req, res) => {
+  try {
+    const id = req?.params?.id;
+
+    await User.findOneAndDelete({ _id: id });
+
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });

@@ -27,7 +27,8 @@ app.use(
 app.use(bodyParser.json());
 app.use(
   cors(
-    { origin: ["https://bidly-auction.netlify.app"], credentials: true}
+    // TODO
+    { origin: ["http://localhost:5173"], credentials: true}
   )
 );
 
