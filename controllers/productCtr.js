@@ -89,9 +89,42 @@ export const createProduct = asyncHandler(async (req, res) => {
   });
 });
 
-// get all products
-export const getAllProducts = asyncHandler(async (req, res) => {
-  const products = await Product.find({}).sort("-createdAt").populate("user");
+// get all product
+// export const getAllProduct = asyncHandler(async (req, res) => {
+//   const products = await Product.find({}).sort("-createdAt").populate("user");
+
+//   const productsWithDetails = await Promise.all(
+//     products.map(async (product) => {
+//       const latestBid = await BiddingProduct.findOne({
+//         product: product._id,
+//       }).sort("-createdAt");
+//       const biddingPrice = latestBid ? latestBid.price : product.price;
+
+//       const totalBids = await BiddingProduct.countDocuments({
+//         product: product._id,
+//       });
+
+//       return {
+//         ...product._doc,
+//         biddingPrice,
+//         totalBids,
+//       };
+//     })
+//   );
+
+//   res.status(200).json(productsWithDetails);
+// });
+
+export const getAllProduct = asyncHandler(async (req, res) => {
+  const { title } = req.query;
+
+  const query = title
+    ? { title: { $regex: title, $options: "i" } }
+    : {};
+
+  const products = await Product.find(query)
+    .sort("-createdAt")
+    .populate("user");
 
   const productsWithDetails = await Promise.all(
     products.map(async (product) => {
@@ -114,88 +147,6 @@ export const getAllProducts = asyncHandler(async (req, res) => {
 
   res.status(200).json(productsWithDetails);
 });
-
-// get all products with pagination
-// export const getAllProducts = asyncHandler(async (req, res) => {
-//   const { page = 1, limit = 8 } = req.query; 
-
-//   const skip = (page - 1) * limit;
-//   const totalProducts = await Product.countDocuments();
-
-//   const products = await Product.find({})
-//     .sort("-createdAt")
-//     .populate("user")
-//     .skip(skip)
-//     .limit(Number(limit));
-
-//   const productsWithDetails = await Promise.all(
-//     products.map(async (product) => {
-//       const latestBid = await BiddingProduct.findOne({
-//         product: product._id,
-//       }).sort("-createdAt");
-//       const biddingPrice = latestBid ? latestBid.price : product.price;
-
-//       const totalBids = await BiddingProduct.countDocuments({
-//         product: product._id,
-//       });
-
-//       return {
-//         ...product._doc,
-//         biddingPrice,
-//         totalBids,
-//       };
-//     })
-//   );
-
-//   res.status(200).json({
-//     products: productsWithDetails,
-//     totalProducts,
-//     currentPage: Number(page),
-//     totalPages: Math.ceil(totalProducts / limit),
-//   });
-// });
-
-// export const getAllProducts = asyncHandler(async (req, res) => {
-//   const { page, limit } = req.query; // Get pagination parameters from query
-//   let productsQuery = Product.find({}).sort("-createdAt").populate("user");
-
-//   // Apply pagination only if page and limit are provided
-//   if (page && limit) {
-//     const skip = (page - 1) * limit;
-//     productsQuery = productsQuery.skip(skip).limit(Number(limit));
-//   }
-
-//   const products = await productsQuery; // Execute the query
-
-//   // Prepare product details with bidding information
-//   const productsWithDetails = await Promise.all(
-//     products.map(async (product) => {
-//       const latestBid = await BiddingProduct.findOne({
-//         product: product._id,
-//       }).sort("-createdAt");
-//       const biddingPrice = latestBid ? latestBid.price : product.price;
-
-//       const totalBids = await BiddingProduct.countDocuments({
-//         product: product._id,
-//       });
-
-//       return {
-//         ...product._doc,
-//         biddingPrice,
-//         totalBids,
-//       };
-//     })
-//   );
-
-//   // Count total products only when pagination is applied
-//   const totalProducts = page && limit ? await Product.countDocuments() : undefined;
-
-//   res.status(200).json({
-//     products: productsWithDetails,
-//     totalProducts: totalProducts, // Include only when pagination is applied
-//     totalPages: totalProducts ? Math.ceil(totalProducts / limit) : undefined, // Calculate pages if applicable
-//   });
-// });
 
 
 // delete product
@@ -341,10 +292,10 @@ export const getWonProducts = asyncHandler(async (req, res) => {
   res.status(200).json(productsWithPrices);
 });
 
-// TODO: get product by slug
+// get product by id
 export const getProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const product = await Product.findById(id).populate("user"); // TODO:
+  const product = await Product.findById(id).populate("user");
   
   if (!product) {
     res.status(404);
@@ -360,8 +311,6 @@ export const getAllSoldProducts = asyncHandler(async (req, res) => {
     .populate("user");
   res.status(200).json(products);
 });
-
-// only admin access
 
 // verify And Add Commission Product By Amdin
 export const verifyAndAddCommissionProductByAmdin = asyncHandler(
@@ -385,24 +334,6 @@ export const verifyAndAddCommissionProductByAmdin = asyncHandler(
       .json({ message: "Product verified successfully", data: product });
   }
 );
-
-// get all products by admin
-export const getAllProductsByAmdin = asyncHandler(async (req, res) => {
-  const products = await Product.find({}).sort("-createdAt").populate("user");
-
-  // const productsWithPrices = await Promise.all(
-  //   products.map(async (product) => {
-  //     const latestBid = await BiddingProduct.findOne({ product: product._id }).sort("-createdAt");
-  //     const biddingPrice = latestBid ? latestBid.price : product.price;
-  //     return {
-  //       ...product._doc,
-  //       biddingPrice,
-  //     };
-  //   })
-  // );
-
-  res.status(200).json(products);
-});
 
 // delete products by admin
 export const deleteProductsByAmdin = asyncHandler(async (req, res) => {
