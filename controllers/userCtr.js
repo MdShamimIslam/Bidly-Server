@@ -1,5 +1,6 @@
 import asyncHandler from "express-async-handler";
 import User from "../models/userModel.js";
+import Product from "../models/productModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import cloudinary from "cloudinary";
@@ -229,6 +230,73 @@ export const getUserBalance = asyncHandler(async (req, res) => {
     balance: user.balance,
   });
 });
+
+// Add a product to favourites
+export const addFavouriteProduct = asyncHandler(async (req, res) => {
+  const userId = req.user.id; 
+  const productId = req.params.productId;
+
+  const product = await Product.findById(productId);
+  if (!product) {
+    res.status(404);
+    throw new Error("Product not found");
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  if (user.favouriteProducts.includes(productId)) {
+    res.status(400);
+    throw new Error("Product is already in your favourites");
+  }
+
+  user.favouriteProducts.push(productId);
+  await user.save();
+
+  res.status(200).json({ message: "Product added to favourites" });
+});
+
+// remove a product from favourites
+export const getFavouriteProducts = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+
+  const user = await User.findById(userId).populate("favouriteProducts");
+
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+  
+  res.status(200).json(user.favouriteProducts); 
+});
+
+// remove a product from favourites
+export const removeFavouriteProduct = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const productId = req.params.id;
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  user.favouriteProducts = user.favouriteProducts.filter(
+    (favProduct) => favProduct.toString() !== productId
+  );
+
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Product removed from favorites",
+  });
+});
+
 
 // get all users (only access for admin)
 export const getAllUser = asyncHandler(async (req, res) => {

@@ -33,6 +33,10 @@ const userSchema = mongoose.Schema(
       type: Number,
       default: 0,
     },
+    favouriteProducts: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "Product",
+    },
   },
   {
     timestamps: true,

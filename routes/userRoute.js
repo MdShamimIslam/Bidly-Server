@@ -8,6 +8,9 @@ import {
   getUser,
   updateUser,
   getUserBalance,
+  addFavouriteProduct,
+  getFavouriteProducts,
+  removeFavouriteProduct,
   getAllUser,
   estimateIncome,
   deleteUserByAdmin
@@ -24,6 +27,11 @@ router.post("/seller", loginAsSeller);
 router.get("/getuser", protect, getUser);
 router.put("/update-user-profile", protect, upload.single("photo"), updateUser);
 router.get("/sell-amount", protect, getUserBalance);
+router.post("/favourite-product/:productId", protect, addFavouriteProduct); 
+router.get("/favourite-product", protect, getFavouriteProducts);
+router.delete( "/favourite-product/:id", protect, removeFavouriteProduct );
+
+
 router.get("/estimate-income", protect, isAdmin, estimateIncome); // only access for admin
 router.get("/alluser", protect, isAdmin, getAllUser); // only access for admin
 router.delete("/admin/delete-user/:id", protect, isAdmin, deleteUserByAdmin); // only access for admin

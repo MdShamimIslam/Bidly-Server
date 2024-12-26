@@ -28,7 +28,7 @@ app.use(bodyParser.json());
 app.use(
   cors(
     // TODO
-    { origin: ["http://localhost:5173"], credentials: true}
+    { origin: ["http://localhost:5174"], credentials: true}
   )
 );
 
@@ -61,8 +61,8 @@ await  connectDB();
 
 // routes
 app.get("/", (req, res) => {
-  res.send("Bidly Server is running");
+  res.send("bidxpress Server is running");
 });
 app.listen(PORT, () => {
-    console.log(`Bidly server is running on port ${PORT}`);
+    console.log(`bidxpress server is running on port ${PORT}`);
   });
