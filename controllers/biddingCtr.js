@@ -3,6 +3,7 @@ import BiddingProduct from "../models/biddingModel.js";
 import Product from "../models/productModel.js";
 import User from "../models/userModel.js";
 import { sendEmail } from "../utils/sendEmail.js";
+import e from "express";
 
 // adding bid in product for bidddingProduct
 export const placeBid = asyncHandler(async (req, res) => {
