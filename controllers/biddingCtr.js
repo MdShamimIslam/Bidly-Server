@@ -4,18 +4,6 @@ import Product from "../models/productModel.js";
 import User from "../models/userModel.js";
 import { sendEmail } from "../utils/sendEmail.js";
 
-// get bidding history
-export const getBiddingHistory = asyncHandler(async (req, res) => {
-  const { productId } = req.params;
-
-  const biddingHistory = await BiddingProduct.find({ product: productId })
-    .sort("-createdAt")
-    .populate("user")
-    .populate("product");
-
-  res.status(200).json(biddingHistory);
-});
-
 // adding bid in product for bidddingProduct
 export const placeBid = asyncHandler(async (req, res) => {
   const { productId, price } = req.body;
@@ -44,13 +32,13 @@ export const placeBid = asyncHandler(async (req, res) => {
     }
     existingUserBid.price = price;
     await existingUserBid.save();
-    res.status(200).json({ biddingProduct: existingUserBid });
+    res.status(200).json(existingUserBid);
   } else {
-    const highestBid = await BiddingProduct.findOne({
+    const highestBidProduct = await BiddingProduct.findOne({
       product: productId,
     }).sort({ price: -1 });
 
-    if (highestBid && price <= highestBid.price) {
+    if (highestBidProduct && price <= highestBidProduct.price) {
       res.status(400);
       throw new Error("Your bid must be higher than the current highest bid");
     }
@@ -65,9 +53,21 @@ export const placeBid = asyncHandler(async (req, res) => {
   }
 });
 
+// get bidding history
+export const getBiddingHistory = asyncHandler(async (req, res) => {
+  const { productId } = req.params;
+
+  const biddingHistory = await BiddingProduct.find({ product: productId })
+    .sort("-createdAt")
+    .populate("user")
+    .populate("product");
+
+  res.status(200).json(biddingHistory);
+});
+
 // sell the product
 export const sellProduct = asyncHandler(async (req, res) => {
-  const {productId} = req.body;
+  const { productId } = req.body;
   const userId = req.user.id;
 
   const product = await Product.findById(productId);
@@ -82,16 +82,15 @@ export const sellProduct = asyncHandler(async (req, res) => {
       .status(403)
       .json({ error: "You do not have permission to sell this product" });
   }
-
   // Find the highest bid
   const highestBid = await BiddingProduct.findOne({ product: productId })
     .sort({ price: -1 })
     .populate("user");
-    
+
   if (!highestBid) {
     return res
       .status(400)
-      .json({ error: "No winning bid found for the product" });
+      .json({ message: "No winning bid found for the product." });
   }
 
   // Calculate commission and final price

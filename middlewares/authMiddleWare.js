@@ -7,7 +7,6 @@ export const protect = asyncHandler(async (req, res, next) => {
     const token = req.cookies.token;
 
     if (!token) {
-      console.log("Token not found in cookies");
       res.status(401);
       throw new Error("Not authorized, Please Login");
     }
