@@ -27,8 +27,7 @@ app.use(
 app.use(bodyParser.json());
 app.use(
   cors(
-    // TODO
-    { origin: ["http://localhost:5174"], credentials: true}
+    { origin: ["https://bidxpress.netlify.app"], credentials: true}
   )
 );
 
